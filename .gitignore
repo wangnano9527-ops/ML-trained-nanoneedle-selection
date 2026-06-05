@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.pyo
+
+.venv/
+venv/
+.env
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Large or generated data should stay out of git by default.
+raw data/
+data/
+runs/
+predictions/
