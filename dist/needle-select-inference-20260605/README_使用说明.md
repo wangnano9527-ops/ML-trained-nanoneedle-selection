@@ -91,8 +91,8 @@ python -m venv .venv
 
 ## 当前模型信息
 
-- 最佳 epoch：62
-- 验证集 Dice：0.8124
-- Precision：0.8041
-- Recall：0.8219
-
+- 模型来源：基于 `runs/unet_baseline/best.pt`，加入 `Training` 中手工修正 mask 后 fine-tune
+- 最佳 fine-tune epoch：10
+- 验证集 Dice：0.8182
+- Precision：0.8057
+- Recall：0.8314

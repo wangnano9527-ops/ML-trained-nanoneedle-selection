@@ -13,5 +13,6 @@ venv/
 # Large or generated data should stay out of git by default.
 raw data/
 data/
+Training/
 runs/
 predictions/

@@ -22,6 +22,12 @@ from needle_select.ml.model import build_model
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train a U-Net nano-needle mask model.")
     parser.add_argument("--config", default=Path("configs/train.toml"), type=Path)
+    parser.add_argument(
+        "--init-checkpoint",
+        default=None,
+        type=Path,
+        help="Load model weights from an existing checkpoint before training.",
+    )
     return parser.parse_args()
 
 
@@ -93,6 +99,11 @@ def main() -> None:
     val_loader = DataLoader(val_dataset, shuffle=False, **loader_kwargs)
 
     model = build_model(model_config).to(device)
+    checkpoint_config = section(config, "checkpoint")
+    init_checkpoint = args.init_checkpoint or checkpoint_config.get("init")
+    if init_checkpoint:
+        load_model_weights(model, Path(init_checkpoint), device=device)
+
     criterion = BCEDiceLoss(
         bce_weight=float(training_config.get("bce_weight", 0.5)),
         dice_weight=float(training_config.get("dice_weight", 0.5)),
@@ -187,6 +198,13 @@ def save_checkpoint(path: Path, model: torch.nn.Module, config: dict, epoch: int
         },
         path,
     )
+
+
+def load_model_weights(model: torch.nn.Module, checkpoint_path: Path, *, device: torch.device) -> None:
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    state = checkpoint.get("model_state", checkpoint)
+    model.load_state_dict(state)
+    print(f"Loaded initial model weights from {checkpoint_path}")
 
 
 if __name__ == "__main__":
