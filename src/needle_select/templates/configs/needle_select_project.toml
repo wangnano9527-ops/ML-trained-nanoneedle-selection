@@ -1,0 +1,38 @@
+[project]
+name = "needle-select-run"
+
+[paths]
+project_root = ".."
+data_dir = "data"
+output_dir = "output"
+work_dir = "work"
+raw_dir = "raw data"
+manifest = "data/manifest.csv"
+splits = "data/splits.csv"
+predictions_dir = "output/predictions"
+scripts_dir = "scripts"
+
+[configs]
+preprocess_config = "configs/preprocess.toml"
+train_config = "configs/train.toml"
+inference_profile = "configs/inference_profile.json"
+
+[model]
+# Set this to a local checkpoint such as models/needle_unet_unified_v2.pt.
+checkpoint = ""
+
+[inference]
+# File or directory for direct inference. Leave empty until configured.
+input = ""
+threshold = 0.5
+patch_size = 256
+overlap = 0.5
+channel = 0
+# Set scale directly, or leave unset and use inference_profile auto-scale.
+# scale = 0.6667
+# input_magnification = 60.0
+trained_magnification = 40.0
+recursive = true
+
+[commands]
+python = "python"

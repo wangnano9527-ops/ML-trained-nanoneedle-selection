@@ -1,0 +1,48 @@
+# Preprocessing parameters for nano-needle masks.
+#
+# Values under [manual] are the ones you are most likely to tune.
+# Values under [advanced] usually stay fixed unless a new microscope setup
+# changes the image scale, array geometry, or mask quality.
+
+[paths]
+raw_dir = "raw data"
+out_dir = "data"
+
+[manual]
+# Zero-based TIFF channel/page index. channel1 in the microscope file is 0.
+channel = 0
+
+# Removes components smaller than this fraction of the automatically estimated
+# main dot area. Lower keeps more tiny dots; higher removes more small debris.
+min_area_factor = 0.45
+
+# Allowed lattice phase error as a fraction of the automatically estimated pitch.
+# Lower is stricter for gap/off-grid points; higher keeps more imperfect edge points.
+lattice_phase_tolerance = 0.36
+
+# A point can be kept even if phase is imperfect when it has this many neighbors
+# along the estimated up/down/left/right lattice axes.
+lattice_min_axial_neighbors = 2
+
+# Turn this off to use only the older density-network filter.
+use_lattice_filter = true
+
+[advanced]
+connectivity = 2
+area_hist_bins = 48
+remove_large_components = false
+max_area_factor = 4.0
+min_components_for_network = 20
+network_radius_factor = 2.4
+network_min_neighbors = 2
+min_network_cluster_size = 20
+keep_cluster_min_fraction_of_largest = 0.10
+lattice_neighbor_k = 10
+lattice_angle_bins = 120
+lattice_phase_bins = 96
+lattice_vector_distance_tolerance = 0.45
+lattice_axis_angle_tolerance_deg = 18.0
+lattice_min_phase_tolerance_px = 4.0
+lattice_axial_distance_tolerance = 0.32
+lattice_axial_lateral_tolerance = 0.28
+lattice_min_final_fraction = 0.35

@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "model": {
+    "trained_magnification": 40.0,
+    "target_pitch_px": 31.0,
+    "target_dot_diameter_px": 9.4
+  },
+  "inference": {
+    "threshold": 0.5,
+    "patch_size": 256,
+    "overlap": 0.5,
+    "channel": 0
+  },
+  "scale": {
+    "mode": "auto",
+    "min_scale": 0.45,
+    "max_scale": 1.5,
+    "auto_method": "pitch_then_diameter",
+    "candidate_threshold_percentiles": [96.0, 95.0, 94.0, 93.0, 92.0, 90.0],
+    "min_components": 12,
+    "candidate_min_area_px": 4.0,
+    "candidate_max_area_px": 2500.0
+  },
+  "recommended_presets": {
+    "40x": {
+      "scale": 1.0,
+      "threshold": 0.5,
+      "patch_size": 256
+    },
+    "60x": {
+      "input_magnification": 60.0,
+      "trained_magnification": 40.0,
+      "image_scale": 0.6667,
+      "threshold": 0.5,
+      "patch_size": 256
+    },
+    "auto": {
+      "auto_scale": true,
+      "uses": "lattice pitch first, dot diameter as fallback"
+    }
+  },
+  "tunable_parameters": [
+    {
+      "name": "threshold",
+      "cli": "--threshold",
+      "default": 0.5,
+      "typical_range": [0.35, 0.65],
+      "effect": "Lower keeps more faint needles; higher reduces false positives."
+    },
+    {
+      "name": "image_scale",
+      "cli": "--scale",
+      "default": "auto",
+      "typical_range": [0.45, 1.5],
+      "effect": "Scale applied before model inference. 60x images for this 40x-trained model usually need about 0.6667."
+    },
+    {
+      "name": "input_magnification",
+      "cli": "--input-magnification",
+      "default": null,
+      "effect": "When provided, image_scale is trained_magnification / input_magnification."
+    },
+    {
+      "name": "target_pitch_px",
+      "cli": "--target-pitch-px",
+      "default": 31.0,
+      "effect": "Expected lattice pitch at model scale; auto-scale uses target_pitch_px / estimated_pitch_px."
+    },
+    {
+      "name": "target_dot_diameter_px",
+      "cli": "--target-dot-diameter-px",
+      "default": 9.4,
+      "effect": "Expected dot diameter at model scale; used when pitch cannot be estimated."
+    },
+    {
+      "name": "patch_size",
+      "cli": "--patch-size",
+      "default": 256,
+      "effect": "Sliding-window tile size for model inference."
+    },
+    {
+      "name": "overlap",
+      "cli": "--overlap",
+      "default": 0.5,
+      "typical_range": [0.25, 0.75],
+      "effect": "Sliding-window overlap. Higher values are smoother but slower."
+    },
+    {
+      "name": "channel",
+      "cli": "--channel",
+      "default": 0,
+      "effect": "Zero-based TIFF page or band used for inference."
+    }
+  ],
+  "outputs": {
+    "mask": "*_mask_pred.png",
+    "probability": "*_prob.png",
+    "overlay": "*_overlay.png",
+    "settings": "inference_settings.json"
+  }
+}

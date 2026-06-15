@@ -1,0 +1,33 @@
+[project]
+name = "needle-select-smoke"
+
+[paths]
+project_root = ".."
+data_dir = "data"
+output_dir = "output"
+work_dir = "work"
+raw_dir = "raw data"
+manifest = "data/manifest.csv"
+splits = "data/splits.csv"
+predictions_dir = "predictions"
+scripts_dir = "scripts"
+
+[configs]
+preprocess_config = "configs/preprocess.toml"
+train_config = "configs/train.toml"
+inference_profile = "configs/inference_profile_unified_v2.json"
+
+[model]
+checkpoint = ""
+
+[inference]
+input = ""
+threshold = 0.5
+patch_size = 256
+overlap = 0.5
+channel = 0
+trained_magnification = 40.0
+recursive = false
+
+[commands]
+python = "python"

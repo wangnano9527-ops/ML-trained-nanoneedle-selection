@@ -2,6 +2,22 @@
 
 Machine-learning project for extracting nano-needle array masks from fluorescence images.
 
+This repository now also exposes an installable package and CLI for reuse in other projects:
+
+```powershell
+python -m pip install -e .
+needle-select describe
+needle-select init-project E:\work\needle-run
+needle-select run --config configs\example.project.toml --dry-run
+```
+
+Start with:
+
+- `docs/OVERVIEW.md` for current structure and data flow.
+- `docs/QUICKSTART.md` for install, CLI, and Python API usage.
+- `docs/CONFIG_REFERENCE.md` for portable config fields.
+- `docs/DELIVERY.md` for migration and handoff rules.
+
 ## Preprocessing
 
 The raw folder contains paired files such as:

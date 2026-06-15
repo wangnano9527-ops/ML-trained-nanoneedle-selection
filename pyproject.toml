@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "needle-select"
+version = "0.1.0"
+description = "Reusable preprocessing, training, fine-tuning, and inference tooling for nano-needle mask selection."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=1.26",
+  "Pillow>=10.0",
+  "scipy>=1.11",
+]
+authors = [
+  {name = "Needle Select Maintainers"}
+]
+
+[project.optional-dependencies]
+ml = [
+  "torch>=2.2",
+  "tqdm>=4.66",
+]
+test = []
+
+[project.scripts]
+needle-select = "needle_select.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+needle_select = ["templates/**/*"]
+
+[tool.setuptools.exclude-package-data]
+needle_select = ["templates/**/__pycache__/*", "templates/**/*.pyc", "templates/**/*.pyo"]

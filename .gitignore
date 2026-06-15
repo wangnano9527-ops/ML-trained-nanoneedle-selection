@@ -16,3 +16,19 @@ data/
 Training/
 runs/
 predictions/
+output/
+work/
+logs/
+models/
+dist/
+build/
+*.egg-info/
+
+# Local raw microscope data and model artifacts are too large for Git.
+New-raw/
+*.tif
+*.tiff
+*.pt
+*.pth
+*.ckpt
+*.zip

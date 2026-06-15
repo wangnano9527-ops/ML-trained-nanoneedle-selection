@@ -1,0 +1,3 @@
+recursive-include src/needle_select/templates *
+global-exclude *.py[cod]
+global-exclude __pycache__
