@@ -38,10 +38,30 @@ class InferenceConfig:
     threshold: float | None = None
     patch_size: int | None = None
     overlap: float | None = None
+    channel_mode: str = "max"
     channel: int | None = None
     scale: float | None = None
     input_magnification: float | None = None
     trained_magnification: float | None = None
+    auto_magnification: bool = True
+    model_diameter_px: float | None = None
+    expected_diameter_px: float | None = None
+    clean_components: bool = True
+    min_diameter_ratio: float = 0.35
+    max_diameter_ratio: float = 2.5
+    save_circle_rois: bool = True
+    circle_radius_padding: float = 0.0
+    circle_min_radius: float | None = None
+    circle_max_radius: float | None = None
+    circle_min_area: int = 4
+    circle_center_mode: str = "lattice"
+    circle_radius_mode: str = "global-quantile"
+    circle_component_coverage_quantile: float = 0.99
+    circle_global_radius_quantile: float = 0.99
+    circle_radius_anomaly_ratio: float = 1.5
+    circle_radius_anomaly_mad: float = 6.0
+    lattice_min_points: int = 6
+    lattice_max_snap_distance: float | None = 4.0
     recursive: bool = False
 
 
@@ -102,10 +122,34 @@ def load_project_config(path: str | Path | None = None) -> ProjectConfig:
             threshold=maybe_float(inference_payload.get("threshold")),
             patch_size=maybe_int(inference_payload.get("patch_size")),
             overlap=maybe_float(inference_payload.get("overlap")),
+            channel_mode=str(inference_payload.get("channel_mode", "max")),
             channel=maybe_int(inference_payload.get("channel")),
             scale=maybe_float(inference_payload.get("scale")),
             input_magnification=maybe_float(inference_payload.get("input_magnification")),
             trained_magnification=maybe_float(inference_payload.get("trained_magnification")),
+            auto_magnification=bool(inference_payload.get("auto_magnification", True)),
+            model_diameter_px=maybe_float(inference_payload.get("model_diameter_px")),
+            expected_diameter_px=maybe_float(inference_payload.get("expected_diameter_px")),
+            clean_components=bool(inference_payload.get("clean_components", True)),
+            min_diameter_ratio=float(inference_payload.get("min_diameter_ratio", 0.35)),
+            max_diameter_ratio=float(inference_payload.get("max_diameter_ratio", 2.5)),
+            save_circle_rois=bool(inference_payload.get("save_circle_rois", True)),
+            circle_radius_padding=float(inference_payload.get("circle_radius_padding", 0.0)),
+            circle_min_radius=maybe_float(inference_payload.get("circle_min_radius")),
+            circle_max_radius=maybe_float(inference_payload.get("circle_max_radius")),
+            circle_min_area=int(inference_payload.get("circle_min_area", 4)),
+            circle_center_mode=str(inference_payload.get("circle_center_mode", "lattice")),
+            circle_radius_mode=str(inference_payload.get("circle_radius_mode", "global-quantile")),
+            circle_component_coverage_quantile=float(
+                inference_payload.get("circle_component_coverage_quantile", 0.99)
+            ),
+            circle_global_radius_quantile=float(
+                inference_payload.get("circle_global_radius_quantile", 0.99)
+            ),
+            circle_radius_anomaly_ratio=float(inference_payload.get("circle_radius_anomaly_ratio", 1.5)),
+            circle_radius_anomaly_mad=float(inference_payload.get("circle_radius_anomaly_mad", 6.0)),
+            lattice_min_points=int(inference_payload.get("lattice_min_points", 6)),
+            lattice_max_snap_distance=maybe_float(inference_payload.get("lattice_max_snap_distance", 4.0)),
             recursive=bool(inference_payload.get("recursive", False)),
         ),
         commands=CommandConfig(python=str(commands_payload.get("python", sys.executable))),

@@ -18,19 +18,33 @@ train_config = "configs/train.toml"
 inference_profile = "configs/inference_profile_unified_v2.json"
 
 [model]
-# Put exported checkpoints outside Git, then reference them here.
-checkpoint = "models/needle_unet_unified_v2.pt"
+checkpoint = "model_registry/unified_v2/needle_unet_unified_v2.pt"
 
 [inference]
 input = "data/input"
 threshold = 0.5
 patch_size = 256
 overlap = 0.5
+channel_mode = "max"
 channel = 0
-# For 60x images with a 40x-trained model, 0.6667 is a useful manual start.
-# scale = 0.6667
+# Set 20.0, 40.0, or 60.0 when known. Otherwise screen/infer estimates and maps it.
 # input_magnification = 60.0
 trained_magnification = 40.0
+auto_magnification = true
+clean_components = true
+min_diameter_ratio = 0.35
+max_diameter_ratio = 2.5
+save_circle_rois = true
+circle_radius_padding = 0.0
+circle_min_area = 4
+circle_center_mode = "lattice"
+circle_radius_mode = "global-quantile"
+circle_component_coverage_quantile = 0.99
+circle_global_radius_quantile = 0.99
+circle_radius_anomaly_ratio = 1.5
+circle_radius_anomaly_mad = 6.0
+lattice_min_points = 6
+lattice_max_snap_distance = 4.0
 recursive = true
 
 [commands]

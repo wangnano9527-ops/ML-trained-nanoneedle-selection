@@ -11,6 +11,7 @@ from typing import Iterable
 
 from .config import ProjectConfig, load_project_config
 from .runner import build_plan, public_steps, run_plan
+from .screening import screen_project
 
 
 def describe_project() -> dict:
@@ -18,7 +19,7 @@ def describe_project() -> dict:
         "name": "Needle Select",
         "package": "needle_select",
         "version": package_version(),
-        "summary": "Reusable preprocessing, training, fine-tuning, and inference tooling for nano-needle array masks.",
+        "summary": "Unified-v2 nano-needle inference plus reusable preprocessing, training, and ROI/lattice tooling.",
         "capabilities": list_capabilities(),
         "public_steps": list_public_steps(),
         "data_flow": [
@@ -40,10 +41,10 @@ def describe_project() -> dict:
             {
                 "step": "infer",
                 "input": "checkpoint, image or folder, inference profile",
-                "output": "mask_pred.png, prob.png, overlay.png, inference_settings.json",
+                "output": "mask/probability/overlay, circular ROI CSV/masks, radius summary, inference_settings.json",
             },
         ],
-        "safe_to_git": ["src/", "needle_select/", "scripts/", "configs/", "docs/", "tests/", "pyproject.toml"],
+        "safe_to_git": ["src/", "needle_select/", "scripts/", "configs/", "docs/", "tests/", "model_registry/unified_v2/ (Git LFS)", "pyproject.toml"],
         "keep_out_of_git": ["data/", "runs/", "predictions/", "Training/", "New-raw/", "dist/", "raw data/"],
     }
 
@@ -59,6 +60,10 @@ def list_capabilities() -> list[dict[str, str]]:
         {"name": "unet_training", "description": "Train or fine-tune a binary U-Net segmentation model."},
         {"name": "sliding_window_prediction", "description": "Predict full images from patch-trained models."},
         {"name": "profile_aware_inference", "description": "Run inference with threshold, scale, magnification, and auto pitch estimation."},
+        {"name": "channel_projection", "description": "Select one channel or combine all channels with MAX or SUM."},
+        {"name": "magnification_mapping", "description": "Use or estimate input magnification and map it to 20x, 40x, or 60x."},
+        {"name": "circular_lattice_rois", "description": "Filter components and generate lattice-centered circular ROI masks and QA tables."},
+        {"name": "preflight_screen", "description": "Show required operator inputs and resolved settings before inference."},
         {"name": "project_bootstrap", "description": "Initialize a clean run directory for another project."},
     ]
 
@@ -86,6 +91,7 @@ def init_project(target_dir: str | Path, *, overwrite: bool = False) -> dict:
         "created_dirs": ["data", "output", "work", "logs", "configs"],
         "copied_files": copied,
         "next_commands": [
+            str(target / "screen.ps1"),
             str(target / "doctor.ps1"),
             str(target / "run.ps1"),
         ],
@@ -112,8 +118,24 @@ def run_project(
     dry_run: bool = False,
 ) -> dict:
     config = load_project_config(config_path)
-    plan = build_plan(config, steps)
-    return run_plan(plan, cwd=config.paths.project_root, dry_run=dry_run)
+    selected_steps = list(steps) if steps is not None else None
+    plan = build_plan(config, selected_steps)
+    preflight = None
+    if not dry_run and any(step.name == "infer" for step in plan):
+        preflight = screen_project(config_path)
+        if not preflight["ready"]:
+            return {
+                "dry_run": False,
+                "blocked": True,
+                "reason": "Inference screen did not pass.",
+                "screen": preflight,
+                "steps": [],
+                "return_codes": [],
+            }
+    result = run_plan(plan, cwd=config.paths.project_root, dry_run=dry_run)
+    if preflight is not None:
+        result["screen"] = preflight
+    return result
 
 
 def check_environment(config_path: str | Path | None = None) -> dict:
@@ -122,6 +144,7 @@ def check_environment(config_path: str | Path | None = None) -> dict:
         "numpy": "numpy",
         "Pillow": "PIL",
         "scipy": "scipy",
+        "tifffile": "tifffile",
         "torch": "torch",
         "tqdm": "tqdm",
     }.items()}
@@ -146,7 +169,7 @@ def check_environment(config_path: str | Path | None = None) -> dict:
         "paths": paths,
         "gpu": gpu,
         "config": str(config_path) if config_path else None,
-        "ready": all(packages[name] for name in ["numpy", "Pillow", "scipy"]) and paths["project_root"],
+        "ready": all(packages[name] for name in ["numpy", "Pillow", "scipy", "tifffile"]) and paths["project_root"],
     }
 
 

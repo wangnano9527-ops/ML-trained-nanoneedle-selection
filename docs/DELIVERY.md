@@ -18,7 +18,7 @@ For a reusable code delivery, ship:
 
 For a model delivery, also ship the checkpoint and its inference profile together:
 
-- `models/<checkpoint>.pt`
+- `model_registry/unified_v2/needle_unet_unified_v2.pt` (Git LFS)
 - `configs/inference_profile_unified_v2.json`
 
 Do not commit or package large local data and results unless explicitly creating an external artifact.
@@ -39,7 +39,7 @@ Keep these out of Git:
 - `logs/`
 - `models/`
 - `dist/`
-- model files: `.pt`, `.pth`, `.ckpt`
+- ad-hoc model files: `.pt`, `.pth`, `.ckpt` outside the released `model_registry/`
 - generated `.zip` archives
 
 The repository `.gitignore` includes these patterns.
@@ -60,12 +60,13 @@ The repository `.gitignore` includes these patterns.
    python -m pip install -e ".[ml]"
    ```
 
-5. Put local data and checkpoints into machine-local directories such as `data/` and `models/`.
+5. Run `git lfs pull` to obtain the unified-v2 checkpoint and put local input data under a configured machine-local directory.
 6. Update `configs/example.project.toml` or a generated `configs/needle_select_project.toml`.
 7. Run:
 
    ```powershell
    needle-select doctor --config configs\example.project.toml
+   needle-select screen --config configs\example.project.toml
    needle-select run --config configs\example.project.toml --dry-run
    ```
 
@@ -91,4 +92,5 @@ Machine-specific items that must be configured after migration:
 - model checkpoint path
 - Python executable or environment
 - GPU/CUDA/PyTorch installation
-- 40x/60x inference scale behavior if the microscope setup changes
+- 20x/40x/60x inference mapping if the microscope setup changes
+- operator confirmation of the 20x/40x/60x screen result when magnification metadata is absent

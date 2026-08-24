@@ -18,6 +18,7 @@ On this migrated machine, you can also run the root helper scripts without insta
 
 ```powershell
 .\doctor.ps1
+.\screen.ps1
 .\status.ps1
 .\run.ps1 -DryRun
 ```
@@ -37,6 +38,7 @@ needle-select capabilities --json
 needle-select init-project E:\somewhere\needle-run
 cd E:\somewhere\needle-run
 .\doctor.ps1
+.\screen.ps1
 .\status.ps1
 ```
 
@@ -52,8 +54,14 @@ needle-select run --config configs\example.project.toml --dry-run
 To run only direct inference:
 
 ```powershell
+needle-select screen --config configs\example.project.toml
 needle-select run --config configs\example.project.toml --steps infer
 ```
+
+Run the screen before the first inference and whenever the microscope, channel
+layout, input folder, or checkpoint changes. `doctor` checks the Python environment;
+`screen` checks the actual inference inputs and operator choices. An actual `infer`
+run through the public API is blocked automatically if the screen is not ready.
 
 ## Call From Python
 
@@ -80,5 +88,9 @@ python scripts\predict_masks.py --checkpoint runs\unet_baseline\best.pt --manife
 Use `scripts\infer_needles.py` for profile-aware direct inference:
 
 ```powershell
-python scripts\infer_needles.py --checkpoint models\needle_unet_unified_v2.pt --input data\input --out-dir predictions --profile configs\inference_profile_unified_v2.json --recursive
+python scripts\infer_needles.py --checkpoint model_registry\unified_v2\needle_unet_unified_v2.pt --input data\input --out-dir predictions --profile configs\inference_profile_unified_v2.json --channel-mode max --recursive
 ```
+
+Valid channel modes are `single`, `max`, and `sum`. For `single`, also set the
+zero-based `--channel`. If magnification is known, provide only 20, 40, or 60 with
+`--input-magnification`; if omitted, it is estimated and mapped to one of those values.

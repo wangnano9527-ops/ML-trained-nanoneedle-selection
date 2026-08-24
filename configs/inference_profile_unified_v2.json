@@ -9,12 +9,14 @@
     "threshold": 0.5,
     "patch_size": 256,
     "overlap": 0.5,
+    "channel_mode": "max",
     "channel": 0
   },
   "scale": {
     "mode": "auto",
-    "min_scale": 0.45,
-    "max_scale": 1.5,
+    "min_scale": 0.5,
+    "max_scale": 2.25,
+    "supported_magnifications": [20.0, 40.0, 60.0],
     "auto_method": "pitch_then_diameter",
     "candidate_threshold_percentiles": [96.0, 95.0, 94.0, 93.0, 92.0, 90.0],
     "min_components": 12,
@@ -22,6 +24,13 @@
     "candidate_max_area_px": 2500.0
   },
   "recommended_presets": {
+    "20x": {
+      "input_magnification": 20.0,
+      "trained_magnification": 40.0,
+      "image_scale": 2.0,
+      "threshold": 0.5,
+      "patch_size": 256
+    },
     "40x": {
       "scale": 1.0,
       "threshold": 0.5,
@@ -39,6 +48,20 @@
       "uses": "lattice pitch first, dot diameter as fallback"
     }
   },
+  "postprocess": {
+    "clean_components": true,
+    "min_diameter_ratio": 0.35,
+    "max_diameter_ratio": 2.5,
+    "save_circle_rois": true,
+    "circle_center_mode": "lattice",
+    "circle_radius_mode": "global-quantile",
+    "circle_component_coverage_quantile": 0.99,
+    "circle_global_radius_quantile": 0.99,
+    "circle_radius_anomaly_ratio": 1.5,
+    "circle_radius_anomaly_mad": 6.0,
+    "lattice_min_points": 6,
+    "lattice_max_snap_distance": 4.0
+  },
   "tunable_parameters": [
     {
       "name": "threshold",
@@ -51,8 +74,8 @@
       "name": "image_scale",
       "cli": "--scale",
       "default": "auto",
-      "typical_range": [0.45, 1.5],
-      "effect": "Scale applied before model inference. 60x images for this 40x-trained model usually need about 0.6667."
+      "typical_range": [0.6667, 2.0],
+      "effect": "Advanced override. Normal operation maps 20x/40x/60x to exact model scales 2.0/1.0/0.6667."
     },
     {
       "name": "input_magnification",
@@ -86,6 +109,13 @@
       "effect": "Sliding-window overlap. Higher values are smoother but slower."
     },
     {
+      "name": "channel_mode",
+      "cli": "--channel-mode",
+      "default": "max",
+      "choices": ["single", "max", "sum"],
+      "effect": "Use one channel, the maximum across channels, or the sum across channels."
+    },
+    {
       "name": "channel",
       "cli": "--channel",
       "default": 0,
@@ -96,6 +126,10 @@
     "mask": "*_mask_pred.png",
     "probability": "*_prob.png",
     "overlay": "*_overlay.png",
+    "circle_roi_csv": "*_circle_rois.csv",
+    "circle_mask": "*_circle_mask.png",
+    "circle_overlay": "*_circle_overlay.png",
+    "radius_summary": "needle_circle_radius_summary.csv",
     "settings": "inference_settings.json"
   }
 }

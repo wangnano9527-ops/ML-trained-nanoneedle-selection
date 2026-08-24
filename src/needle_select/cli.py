@@ -12,6 +12,7 @@ from .project_api import (
     list_capabilities,
     list_public_steps,
     run_project,
+    screen_project,
 )
 
 
@@ -36,6 +37,11 @@ def build_parser() -> argparse.ArgumentParser:
     doctor = subparsers.add_parser("doctor", help="Check environment and configured paths.")
     doctor.add_argument("--config", type=Path, default=None)
     doctor.add_argument("--json", action="store_true")
+
+    screen = subparsers.add_parser("screen", help="Inspect inference inputs and resolved settings before running.")
+    screen.add_argument("--config", required=True, type=Path)
+    screen.add_argument("--sample-limit", default=3, type=int)
+    screen.add_argument("--json", action="store_true")
 
     run = subparsers.add_parser("run", help="Run configured workflow steps.")
     run.add_argument("--config", required=True, type=Path)
@@ -63,6 +69,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return emit(init_project(args.target_dir, overwrite=args.overwrite), as_json=args.json)
     if args.command == "doctor":
         return emit(check_environment(args.config), as_json=args.json)
+    if args.command == "screen":
+        result = screen_project(args.config, sample_limit=args.sample_limit)
+        emit(result, as_json=args.json)
+        return 0 if result["ready"] else 2
     if args.command == "run":
         result = run_project(args.config, steps=parse_steps(args.steps), dry_run=args.dry_run)
         return emit(result, as_json=args.json)
@@ -88,6 +98,32 @@ def emit(payload: dict, *, as_json: bool) -> int:
 
 
 def print_human(payload: dict) -> None:
+    if payload.get("screen") == "needle-select-inference":
+        print(f"Needle Select screen: {'READY' if payload['ready'] else 'NOT READY'}")
+        print(f"Config: {payload['config']}")
+        print(f"Input: {payload['input']} ({payload['input_count']} files)")
+        print(f"Model: {payload['checkpoint']}")
+        print(f"Channels: mode={payload['channel_mode']}, channel={payload['channel']}")
+        for sample in payload["samples"]:
+            projection = sample["projection"]
+            magnification = sample["magnification"]
+            print(
+                f"- {Path(sample['input']).name}: axes={projection['source_axes']}, "
+                f"channels={projection['channel_count']}, selected={magnification['selected_input_magnification']:g}x, "
+                f"scale={magnification['image_scale']:.4f}, source={magnification['source']}"
+            )
+        if payload["errors"]:
+            print("\nErrors:")
+            for value in payload["errors"]:
+                print(f"- {value}")
+        if payload["warnings"]:
+            print("\nWarnings:")
+            for value in payload["warnings"]:
+                print(f"- {value}")
+        print("\nOperator checklist:")
+        for value in payload["operator_checklist"]:
+            print(f"- {value}")
+        return
     if "summary" in payload and "capabilities" in payload:
         print(f"{payload['name']}: {payload['summary']}")
         print("\nCapabilities:")

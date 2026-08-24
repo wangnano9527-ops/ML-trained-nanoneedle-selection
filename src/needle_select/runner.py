@@ -21,6 +21,7 @@ DEFAULT_STEPS = ["doctor", "preprocess", "make-splits", "train", "predict"]
 
 def public_steps() -> list[dict[str, str]]:
     return [
+        {"name": "screen", "description": "Inspect inputs and resolve channels, magnification, model, and outputs before a run."},
         {"name": "doctor", "description": "Check Python packages, GPU, manifest, splits, and disk space."},
         {"name": "preprocess", "description": "Convert raw tif/mask pairs into cleaned training images and masks."},
         {"name": "make-splits", "description": "Create train/val/test splits from a manifest."},
@@ -50,6 +51,9 @@ def build_step(config: ProjectConfig, name: str) -> Step:
     if name == "doctor":
         command = [python, str(root / scripts_dir / "check_training_env.py"), "--config", str(train_config)]
         return Step(name, "Check environment readiness.", command, [root / scripts_dir / "check_training_env.py", train_config])
+    if name == "screen":
+        command = [python, "-m", "needle_select.cli", "screen", "--config", str(config.path)]
+        return Step(name, "Screen inference inputs and resolved settings.", command, [config.path] if config.path else [])
     if name == "preprocess":
         command = [python, str(root / scripts_dir / "preprocess_raw_data.py"), "--config", str(preprocess_config)]
         return Step(name, "Preprocess raw tif/mask pairs.", command, [root / scripts_dir / "preprocess_raw_data.py", preprocess_config])
@@ -87,10 +91,37 @@ def build_step(config: ProjectConfig, name: str) -> Step:
         add_optional(command, "--threshold", config.inference.threshold)
         add_optional(command, "--patch-size", config.inference.patch_size)
         add_optional(command, "--overlap", config.inference.overlap)
+        command.extend(["--channel-mode", config.inference.channel_mode])
         add_optional(command, "--channel", config.inference.channel)
         add_optional(command, "--scale", config.inference.scale)
         add_optional(command, "--input-magnification", config.inference.input_magnification)
         add_optional(command, "--trained-magnification", config.inference.trained_magnification)
+        add_optional(command, "--model-diameter", config.inference.model_diameter_px)
+        add_optional(command, "--expected-diameter", config.inference.expected_diameter_px)
+        add_optional(command, "--min-diameter-ratio", config.inference.min_diameter_ratio)
+        add_optional(command, "--max-diameter-ratio", config.inference.max_diameter_ratio)
+        add_optional(command, "--circle-radius-padding", config.inference.circle_radius_padding)
+        add_optional(command, "--circle-min-radius", config.inference.circle_min_radius)
+        add_optional(command, "--circle-max-radius", config.inference.circle_max_radius)
+        add_optional(command, "--circle-min-area", config.inference.circle_min_area)
+        command.extend(["--circle-center-mode", config.inference.circle_center_mode])
+        command.extend(["--circle-radius-mode", config.inference.circle_radius_mode])
+        add_optional(
+            command,
+            "--circle-component-coverage-quantile",
+            config.inference.circle_component_coverage_quantile,
+        )
+        add_optional(command, "--circle-global-radius-quantile", config.inference.circle_global_radius_quantile)
+        add_optional(command, "--circle-radius-anomaly-ratio", config.inference.circle_radius_anomaly_ratio)
+        add_optional(command, "--circle-radius-anomaly-mad", config.inference.circle_radius_anomaly_mad)
+        add_optional(command, "--lattice-min-points", config.inference.lattice_min_points)
+        add_optional(command, "--lattice-max-snap-distance", config.inference.lattice_max_snap_distance)
+        if not config.inference.auto_magnification:
+            command.append("--no-auto-magnification")
+        if not config.inference.clean_components:
+            command.append("--no-clean-components")
+        if not config.inference.save_circle_rois:
+            command.append("--no-circle-rois")
         if config.inference.recursive:
             command.append("--recursive")
         return Step(name, "Run direct image/folder inference.", command, [root / scripts_dir / "infer_needles.py"])

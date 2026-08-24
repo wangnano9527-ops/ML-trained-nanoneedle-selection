@@ -32,3 +32,6 @@ New-raw/
 *.pth
 *.ckpt
 *.zip
+
+# The released unified v2 checkpoint is versioned with Git LFS.
+!model_registry/**/*.pt

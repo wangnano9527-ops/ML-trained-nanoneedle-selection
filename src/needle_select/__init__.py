@@ -10,6 +10,7 @@ from .project_api import (
     list_capabilities,
     list_public_steps,
     run_project,
+    screen_project,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "describe_preprocess_parameters",
     "preprocess_dataset",
     "run_project",
+    "screen_project",
 ]

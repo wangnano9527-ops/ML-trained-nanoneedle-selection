@@ -8,6 +8,7 @@ This repository now also exposes an installable package and CLI for reuse in oth
 python -m pip install -e .
 needle-select describe
 needle-select init-project E:\work\needle-run
+needle-select screen --config configs\example.project.toml
 needle-select run --config configs\example.project.toml --dry-run
 ```
 
@@ -17,6 +18,27 @@ Start with:
 - `docs/QUICKSTART.md` for install, CLI, and Python API usage.
 - `docs/CONFIG_REFERENCE.md` for portable config fields.
 - `docs/DELIVERY.md` for migration and handoff rules.
+- `docs/INFERENCE_SCREEN.md` for the operator pre-run screen and inference outputs.
+
+## Unified V2 Inference
+
+The maintained inference path now defaults to
+`model_registry/unified_v2/needle_unet_unified_v2.pt`. It supports one selected
+channel, MAX across all channels, or SUM across all channels. Magnification is
+restricted to 20x, 40x, or 60x: a supplied value is used directly, otherwise image
+geometry is estimated and mapped to the nearest supported value.
+
+Before inference, edit `configs/example.project.toml` and run:
+
+```powershell
+.\screen.ps1
+needle-select run --config configs\example.project.toml --steps infer
+```
+
+The screen is the operator gate for model/input paths, channels, and magnification.
+`run_project(..., steps=["infer"])` also invokes it automatically. Inference writes
+the predicted mask and probability/overlay images plus diameter metrics, circular ROI
+CSV files, circle masks/overlays, lattice-center fields, and a radius summary.
 
 ## Preprocessing
 

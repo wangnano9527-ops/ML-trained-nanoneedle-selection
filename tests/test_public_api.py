@@ -32,7 +32,9 @@ class PublicApiTests(unittest.TestCase):
 
         self.assertEqual(description["package"], "needle_select")
         self.assertIn("profile_aware_inference", capability_names)
+        self.assertIn("preflight_screen", capability_names)
         self.assertIn("infer", step_names)
+        self.assertIn("screen", step_names)
         self.assertIn("data_flow", description)
 
     def test_init_project_generates_portable_skeleton(self) -> None:
@@ -46,6 +48,9 @@ class PublicApiTests(unittest.TestCase):
             self.assertTrue((target / "configs" / "needle_select_project.toml").is_file())
             self.assertTrue((target / "configs" / "inference_profile.json").is_file())
             self.assertTrue((target / "scripts" / "infer_needles.py").is_file())
+            self.assertTrue((target / "screen.ps1").is_file())
+            self.assertTrue((target / "screen.cmd").is_file())
+            self.assertTrue((target / "screen.sh").is_file())
             self.assertFalse((target / "__init__.py").exists())
             self.assertIn("README_RUN.md", result["copied_files"])
 

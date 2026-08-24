@@ -25,6 +25,10 @@ Needle Select is a nano-needle mask segmentation project. The repository now sup
 - `needle_select.ml.model`: U-Net model implementation.
 - `needle_select.ml.losses`: segmentation losses and metrics.
 - `needle_select.ml.inference_profile`: profile-aware inference settings and auto-scale helpers.
+- `needle_select.image_io`: TIFF axes handling and single/MAX/SUM channel projection.
+- `needle_select.inference`: unified-v2 inference, diameter filtering, and circular ROI outputs.
+- `needle_select.lattice`: affine/network lattice fitting and center correction.
+- `needle_select.screening`: operator pre-run validation and sample setting resolution.
 - `needle_select.config`: portable project-level TOML config parser.
 - `needle_select.runner`: builds and executes workflow plans.
 - `needle_select.project_api`: stable public API for other projects.
@@ -38,7 +42,8 @@ Needle Select is a nano-needle mask segmentation project. The repository now sup
 | `make-splits` | `data/manifest.csv` | `data/splits.csv` |
 | `train` | manifest, splits, training config, optional checkpoint | run directory with checkpoints, `config.json`, `history.json` |
 | `predict` | checkpoint and manifest | prediction masks/probability images under configured output directory |
-| `infer` | checkpoint, image or folder, inference profile | `*_mask_pred.png`, `*_prob.png`, `*_overlay.png`, `inference_settings.json` |
+| `screen` | project config, checkpoint, sample inputs | readiness, channel interpretation, 20x/40x/60x mapping, operator checklist |
+| `infer` | unified-v2 checkpoint, image or folder, inference profile | masks/probability/overlays, ROI CSV, circle masks/overlays, metrics and radius summary |
 
 ## Dependencies
 
@@ -47,6 +52,7 @@ Minimal preprocessing dependencies are in `requirements.txt`:
 - `numpy`
 - `Pillow`
 - `scipy`
+- `tifffile`
 
 Training and inference dependencies are in `requirements-ml.txt`:
 
@@ -82,5 +88,6 @@ The stable API surface is intentionally small:
 - `init_project(target_dir, overwrite=False)`
 - `run_project(config_path, steps=None, dry_run=False)`
 - `check_environment(config_path=None)`
+- `screen_project(config_path, sample_limit=3)`
 
 Old scripts remain available for compatibility, but new integrations should call the package API or CLI.

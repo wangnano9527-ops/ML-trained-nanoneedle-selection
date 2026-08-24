@@ -1,0 +1,73 @@
+{
+  "name": "needle_unet_unified_v2",
+  "created_date": "2026-06-08",
+  "recommended_checkpoint": "model_registry/unified_v2/needle_unet_unified_v2.pt",
+  "inference_profile": "configs/inference_profile_unified_v2.json",
+  "checkpoints": {
+    "unified_v2": {
+      "path": "model_registry/unified_v2/needle_unet_unified_v2.pt",
+      "source": "runs/unet_finetune_smoke_256_round2/best_unified_round2.pt",
+      "selection": "best mixed validation Dice",
+      "epoch": 27,
+      "sha256": "241FD18F3D01F921A00CA727FFEA2C01B7B66E4E1EA5906C3B4CF3E07D99F1E9"
+    }
+  },
+  "runtime_policy": "Only unified_v2 is distributed and selected at runtime. Other evaluated checkpoints are metrics-only comparisons.",
+  "architecture": {
+    "type": "UNet",
+    "in_channels": 1,
+    "out_channels": 1,
+    "base_channels": 32,
+    "depth": 4,
+    "dropout": 0.05
+  },
+  "recommended_inference": {
+    "threshold": 0.5,
+    "patch_size": 256,
+    "overlap": 0.5,
+    "channel_mode": "max",
+    "channel": 0,
+    "scale_mode": "auto",
+    "trained_magnification": 40.0,
+    "supported_input_magnifications": [20.0, 40.0, 60.0],
+    "target_pitch_px": 31.0,
+    "target_dot_diameter_px": 9.4,
+    "magnification_scales": {
+      "20x": 2.0,
+      "40x": 1.0,
+      "60x": 0.6667
+    },
+    "postprocess": {
+      "diameter_filter": true,
+      "circle_rois": true,
+      "lattice_center_correction": true,
+      "radius_mode": "global-quantile"
+    }
+  },
+  "training_lineage": [
+    "runs/unet_baseline/best.pt",
+    "runs/unet_finetune_manual/best.pt",
+    "dist/needle-select-inference-unified-20260606/models/needle_unet_unified.pt",
+    "runs/unet_finetune_smoke_256_round2/best_unified_round2.pt"
+  ],
+  "training_data_summary": {
+    "manifest": "data/manifest_finetune_smoke_256_round2.csv",
+    "rows_total": 101,
+    "preprocessed_clean_rows": 40,
+    "manual_smoke_256_round2_rows": 61,
+    "manual_smoke_256_unique_tiles": 25,
+    "manual_unique_split": {
+      "train": 18,
+      "val": 4,
+      "test": 3
+    }
+  },
+  "metrics": {
+    "previous_unified_all_manual_dice": 0.789529,
+    "unified_v2_all_manual_dice": 0.916834,
+    "unified_v2_mixed_validation_dice": 0.829958,
+    "manual_holdout_v2_manual_val_dice": 0.895535,
+    "manual_holdout_v2_manual_test_dice": 0.878219,
+    "manual_fit_v2_all_manual_dice": 0.918786
+  }
+}

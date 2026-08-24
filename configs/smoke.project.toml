@@ -25,8 +25,14 @@ input = ""
 threshold = 0.5
 patch_size = 256
 overlap = 0.5
+channel_mode = "max"
 channel = 0
 trained_magnification = 40.0
+auto_magnification = true
+clean_components = true
+save_circle_rois = true
+circle_center_mode = "lattice"
+circle_radius_mode = "global-quantile"
 recursive = false
 
 [commands]

@@ -34,7 +34,7 @@ Relative paths are resolved under `project_root`.
 
 ## `[model]`
 
-- `checkpoint`: local model checkpoint for prediction/inference. Keep checkpoint files outside Git, usually under `models/`.
+- `checkpoint`: model checkpoint for prediction/inference. The maintained default is `model_registry/unified_v2/needle_unet_unified_v2.pt`, tracked with Git LFS.
 
 ## `[inference]`
 
@@ -42,13 +42,21 @@ Relative paths are resolved under `project_root`.
 - `threshold`: probability threshold. Lower keeps more faint needles; higher reduces false positives.
 - `patch_size`: sliding-window patch size. Existing models were trained around 256 or 512 pixel crops depending on the run config.
 - `overlap`: sliding-window overlap fraction.
-- `channel`: zero-based TIFF page/band index.
+- `channel_mode`: `single`, `max`, or `sum`. `max` is the safe default when the signal channel is unknown.
+- `channel`: zero-based TIFF page/band index, used only with `channel_mode = "single"`.
 - `scale`: optional manual resize factor before inference.
-- `input_magnification`: microscope magnification of the new input, such as `60.0`.
+- `input_magnification`: optional microscope magnification; accepted values are exactly `20.0`, `40.0`, or `60.0`.
 - `trained_magnification`: microscope magnification used to train the model, currently `40.0` for the main unified model.
+- `auto_magnification`: estimate image geometry when magnification is omitted, then map it to 20x, 40x, or 60x.
+- `clean_components`, `min_diameter_ratio`, `max_diameter_ratio`: expected-diameter component filtering.
+- `save_circle_rois`: write circular ROI CSV/mask/overlay outputs.
+- `circle_center_mode`: `lattice` corrects detected centers against the fitted grid; `component` keeps measured centers.
+- `circle_radius_mode`: `global-quantile` calibrates a shared dataset radius while excluding anomalous images; `image-max` stays image-local.
+- `circle_component_coverage_quantile`, `circle_global_radius_quantile`: component and dataset radius quantiles.
+- `lattice_min_points`, `lattice_max_snap_distance`: center-correction acceptance settings.
 - `recursive`: whether to search input directories recursively.
 
-For 60x inputs using a 40x-trained model, a useful manual scale is approximately `40 / 60 = 0.6667`. The inference profile can also estimate scale automatically from lattice pitch or dot diameter.
+The exact model-space scales are 2.0 for 20x, 1.0 for 40x, and approximately 0.6667 for 60x. Manual `scale` remains an advanced compatibility override; normal operation should use or estimate magnification.
 
 ## Inference Profile JSON
 

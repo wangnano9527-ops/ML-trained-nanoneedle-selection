@@ -18,7 +18,7 @@ train_config = "configs/train.toml"
 inference_profile = "configs/inference_profile.json"
 
 [model]
-# Set this to a local checkpoint such as models/needle_unet_unified_v2.pt.
+# Set this to the unified v2 checkpoint. Run screen.ps1 to verify it.
 checkpoint = ""
 
 [inference]
@@ -27,11 +27,26 @@ input = ""
 threshold = 0.5
 patch_size = 256
 overlap = 0.5
+channel_mode = "max"
 channel = 0
-# Set scale directly, or leave unset and use inference_profile auto-scale.
-# scale = 0.6667
+# Set one of 20.0, 40.0, or 60.0 when known. Otherwise it is estimated and mapped.
 # input_magnification = 60.0
 trained_magnification = 40.0
+auto_magnification = true
+clean_components = true
+min_diameter_ratio = 0.35
+max_diameter_ratio = 2.5
+save_circle_rois = true
+circle_radius_padding = 0.0
+circle_min_area = 4
+circle_center_mode = "lattice"
+circle_radius_mode = "global-quantile"
+circle_component_coverage_quantile = 0.99
+circle_global_radius_quantile = 0.99
+circle_radius_anomaly_ratio = 1.5
+circle_radius_anomaly_mad = 6.0
+lattice_min_points = 6
+lattice_max_snap_distance = 4.0
 recursive = true
 
 [commands]

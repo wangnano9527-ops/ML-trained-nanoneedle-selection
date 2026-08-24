@@ -1,0 +1,7 @@
+@echo off
+where needle-select >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+  needle-select screen --config configs\needle_select_project.toml %*
+) else (
+  python -m needle_select.cli screen --config configs\needle_select_project.toml %*
+)
