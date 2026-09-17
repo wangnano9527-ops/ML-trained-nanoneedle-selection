@@ -1,1 +1,2 @@
 model_registry/**/*.pt filter=lfs diff=lfs merge=lfs -text
+model_registry/pitch_2p5_v1/inference_profile.json -text whitespace=cr-at-eol
