@@ -1,0 +1,17 @@
+{
+  "schema": "needle-select-model-release/v1",
+  "model_id": "pitch_2p5_v1",
+  "status": "pilot-specialized",
+  "intended_scope": "2.5 um nanoneedle arrays in the validated current imaging domain",
+  "delivery_date": "2026-09-14",
+  "checkpoint": "needle_unet_pitch_2p5_v1.pt",
+  "checkpoint_sha256": "7edf388afa980b0f9950fd66b657b689d49b9ce1c203445501faf2cd2ff7a644",
+  "inference_profile": "inference_profile.json",
+  "inference_profile_sha256": "87a79c5f656a59d26768a286e0c9c95f4f80f86cab629b410c9cb02f25078adc",
+  "source_delivery": "pitch_2p5_v1_delivery_20260914",
+  "initialization_model": "unified_v2",
+  "training_parent_count": 3,
+  "training_tile_count": 21,
+  "operator_review_required": true,
+  "generalization_claimed": false
+}

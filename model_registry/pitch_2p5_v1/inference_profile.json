@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "release_status": "formally_published",
+  "publication": {
+    "published_at": "2026-09-12T22:23:08+08:00",
+    "approval": "Explicit human approval in the Codex project thread",
+    "scope": "2.5 um / current imaging-domain pilot specialized model"
+  },
+  "model": {
+    "file": "needle_unet_pitch_2p5_v1.pt",
+    "model_status": "2.5 \u03bcm / current imaging-domain pilot specialized model",
+    "sha256": "7EDF388AFA980B0F9950FD66B657B689D49B9CE1C203445501FAF2CD2FF7A644",
+    "initialization_checkpoint": "model_registry/unified_v2/needle_unet_unified_v2.pt",
+    "initialization_checkpoint_sha256": "241FD18F3D01F921A00CA727FFEA2C01B7B66E4E1EA5906C3B4CF3E07D99F1E9",
+    "final_epoch": 36,
+    "seed": 42,
+    "target_pitch_px": 30.890495,
+    "target_dot_diameter_px": 19.149229459268767
+  },
+  "normalization": {
+    "mode": "parent-level robust percentile 1.0-99.5",
+    "lower_percentile": 1.0,
+    "upper_percentile": 99.5,
+    "training_loader_mode": "none"
+  },
+  "model_space": {
+    "scale": 2.0,
+    "training_patch_size": 192
+  },
+  "inference": {
+    "patch_size": 256,
+    "overlap": 0.5,
+    "stride": 128,
+    "blend_mode": "uniform arithmetic mean of overlapping probability maps",
+    "edge_handling": "last-window anchoring; reflect padding when valid, otherwise replicate",
+    "probability_coordinate_mapping": "bilinear resize to original shape",
+    "binary_coordinate_mapping": "nearest-neighbor resize to original shape",
+    "threshold": 0.21,
+    "threshold_source": "Full OOF calibration"
+  },
+  "component_filter": {
+    "min_component_area": 12.0,
+    "max_component_area": 707.0,
+    "min_diameter_px": 4.0,
+    "max_diameter_px": 30.0,
+    "filter_source": "physical_prior"
+  },
+  "evaluation": {
+    "matching_distance_px": 10.81
+  },
+  "provenance": {
+    "training_data_version": "pitch_2p5_v1",
+    "training_sample_count": 21,
+    "cv_metrics": "cv_metrics.json",
+    "training_metrics": "training_metrics.json"
+  }
+}

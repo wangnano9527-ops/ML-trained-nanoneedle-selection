@@ -49,6 +49,12 @@ needle-select steps
 model_registry/unified_v2/needle_unet_unified_v2.pt
 ```
 
+`model_registry/pitch_2p5_v1` 另登记了 2026-09-14 正式交付的
+2.5 µm/current imaging-domain 试点专用模型及冻结 profile，并用 SHA-256
+固定身份。它目前是候选模型，不会静默替代 Unified V2。接入方必须完整遵守
+其固定 model-space scale 与 component filter，并通过代表性真实图像 QC 后才能
+提升为普通预设或默认模型。
+
 先编辑 [`configs/example.project.toml`](configs/example.project.toml)，至少确认：
 
 - `[inference].input`：输入图像或图像目录。
