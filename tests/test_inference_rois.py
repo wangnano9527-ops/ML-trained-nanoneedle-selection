@@ -1,12 +1,15 @@
 from pathlib import Path
+from dataclasses import replace
 
 import numpy as np
 from PIL import Image
 
 from needle_select.inference import (
+    CircleImageRecord,
     circle_rois_to_rows,
     choose_global_circle_radius,
     extract_circle_rois,
+    finalize_circle_records,
     make_circle_mask,
     regularize_circle_rois,
     save_circle_outputs,
@@ -94,7 +97,7 @@ def test_circle_roi_csv_and_outputs_are_written(tmp_path: Path) -> None:
     image[8:12, 8:12] = 1.0
     mask = image > 0
     rois = extract_circle_rois(mask, min_radius=4.0)
-    rows = circle_rois_to_rows(rois, image_path=tmp_path / "image.tif", stem="image")
+    rows = circle_rois_to_rows(rois, image_path=tmp_path / "image.tif", stem="image", image_shape=mask.shape)
 
     write_circle_rois_csv(tmp_path / "image_circle_rois.csv", rows)
     save_circle_outputs(tmp_path, "image", image, mask, rois, make_circle_mask(mask.shape, rois))
@@ -103,6 +106,7 @@ def test_circle_roi_csv_and_outputs_are_written(tmp_path: Path) -> None:
     assert "center_x" in csv_text
     assert "radius_px" in csv_text
     assert "required_radius_px" in csv_text
+    assert "detection_coverage_only" in csv_text
     assert (tmp_path / "image_circle_mask.png").exists()
     assert (tmp_path / "image_circle_overlay.png").exists()
     with Image.open(tmp_path / "image_circle_overlay.png") as overlay:
@@ -121,3 +125,51 @@ def test_global_circle_radius_excludes_anomaly_from_calibration() -> None:
     assert radius < 12.0
     assert flags == [False, False, False, True]
     assert reasons[-1]
+
+
+def test_circle_roi_rows_flag_outside_centers_and_neighbor_overlap(tmp_path: Path) -> None:
+    mask = np.zeros((40, 40), dtype=bool)
+    mask[9:12, 9:12] = True
+    mask[9:12, 19:22] = True
+    mask[9:12, 29:32] = True
+    rois = extract_circle_rois(mask, min_radius=3.0)
+    rois = [
+        replace(rois[0], center_x=10.0, radius_px=6.0),
+        replace(rois[1], center_x=20.0, radius_px=6.0),
+        replace(rois[2], center_x=41.0, radius_px=3.0),
+    ]
+
+    rows = circle_rois_to_rows(rois, image_path=tmp_path / "image.tif", stem="image", image_shape=mask.shape)
+
+    assert [row["center_in_image"] for row in rows] == [True, True, False]
+    assert rows[0]["nearest_center_distance_px"] == 10.0
+    assert rows[0]["nearest_circle_overlap_px"] == 2.0
+    assert rows[0]["circle_overlaps_nearest"] is True
+    assert rows[2]["circle_overlaps_nearest"] is False
+    assert all(row["roi_purpose"] == "detection_coverage_only" for row in rows)
+    assert all(row["valid_for_intensity_measurement"] is False for row in rows)
+
+
+def test_component_mode_keeps_individual_radii_and_legacy_mode_remains_opt_in(tmp_path: Path) -> None:
+    mask = np.zeros((40, 40), dtype=bool)
+    mask[5:8, 5:8] = True
+    mask[21:29, 21:29] = True
+    rois = extract_circle_rois(mask, min_radius=2.0)
+    assert len({roi.radius_px for roi in rois}) == 2
+
+    for stem in ("component", "legacy"):
+        Image.fromarray(mask.astype(np.uint8) * 255).save(tmp_path / f"{stem}_mask_pred.png")
+        Image.fromarray(mask.astype(np.uint8) * 255).save(tmp_path / f"{stem}_prob.png")
+
+    def finalize(stem: str, mode: str) -> list[dict]:
+        record = CircleImageRecord(tmp_path / f"{stem}.tif", stem, rois, {})
+        return finalize_circle_records(
+            [record], output_dir=tmp_path, radius_mode=mode, uniform_radius=False,
+            component_quantile=1.0, global_quantile=1.0,
+            anomaly_ratio=1.5, anomaly_mad_threshold=6.0,
+        )
+
+    component_rows = finalize("component", "component")
+    legacy_rows = finalize("legacy", "global-quantile")
+    assert len({row["radius_px"] for row in component_rows}) == 2
+    assert len({row["radius_px"] for row in legacy_rows}) == 1

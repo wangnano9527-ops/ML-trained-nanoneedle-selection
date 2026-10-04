@@ -32,7 +32,7 @@ auto_magnification = true
 clean_components = true
 save_circle_rois = true
 circle_center_mode = "lattice"
-circle_radius_mode = "global-quantile"
+circle_radius_mode = "component"
 recursive = false
 
 [commands]

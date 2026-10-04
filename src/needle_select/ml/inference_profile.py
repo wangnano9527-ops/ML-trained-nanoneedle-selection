@@ -47,7 +47,7 @@ DEFAULT_PROFILE: dict[str, Any] = {
         "max_diameter_ratio": 2.5,
         "save_circle_rois": True,
         "circle_center_mode": "lattice",
-        "circle_radius_mode": "global-quantile",
+        "circle_radius_mode": "component",
         "circle_component_coverage_quantile": 0.99,
         "circle_global_radius_quantile": 0.99,
         "circle_radius_anomaly_ratio": 1.5,

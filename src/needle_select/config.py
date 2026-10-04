@@ -55,7 +55,7 @@ class InferenceConfig:
     circle_max_radius: float | None = None
     circle_min_area: int = 4
     circle_center_mode: str = "lattice"
-    circle_radius_mode: str = "global-quantile"
+    circle_radius_mode: str = "component"
     circle_component_coverage_quantile: float = 0.99
     circle_global_radius_quantile: float = 0.99
     circle_radius_anomaly_ratio: float = 1.5
@@ -139,7 +139,7 @@ def load_project_config(path: str | Path | None = None) -> ProjectConfig:
             circle_max_radius=maybe_float(inference_payload.get("circle_max_radius")),
             circle_min_area=int(inference_payload.get("circle_min_area", 4)),
             circle_center_mode=str(inference_payload.get("circle_center_mode", "lattice")),
-            circle_radius_mode=str(inference_payload.get("circle_radius_mode", "global-quantile")),
+            circle_radius_mode=str(inference_payload.get("circle_radius_mode", "component")),
             circle_component_coverage_quantile=float(
                 inference_payload.get("circle_component_coverage_quantile", 0.99)
             ),

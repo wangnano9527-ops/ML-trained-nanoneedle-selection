@@ -57,6 +57,9 @@ class PublicApiTests(unittest.TestCase):
             config = load_project_config(target / "configs" / "needle_select_project.toml")
             self.assertEqual(config.paths.project_root, target.resolve())
             self.assertEqual(config.inference.patch_size, 256)
+            self.assertEqual(config.inference.circle_radius_mode, "component")
+            script = (target / "scripts" / "infer_needles.py").read_text(encoding="utf-8")
+            self.assertIn('default="component"', script)
 
     def test_run_project_dry_run_builds_plan(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

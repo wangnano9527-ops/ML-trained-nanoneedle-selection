@@ -10,6 +10,7 @@ from typing import Any
 import numpy as np
 from PIL import Image
 from scipy import ndimage
+from scipy.spatial import cKDTree
 
 from .image_io import IMAGE_SUFFIXES, load_image_projection, safe_stem as image_safe_stem
 from .ml.inference_profile import (
@@ -87,6 +88,12 @@ CIRCLE_ROI_FIELDNAMES = [
     "lattice_node_i",
     "lattice_node_j",
     "lattice_snap_distance_px",
+    "roi_purpose",
+    "valid_for_intensity_measurement",
+    "center_in_image",
+    "nearest_center_distance_px",
+    "nearest_circle_overlap_px",
+    "circle_overlaps_nearest",
 ]
 
 
@@ -133,7 +140,7 @@ def run_needle_inference(
     circle_min_area: int = 1,
     circle_center_mode: str = "component",
     circle_uniform_radius: bool = False,
-    circle_radius_mode: str = "image-max",
+    circle_radius_mode: str = "component",
     circle_component_coverage_quantile: float = 1.0,
     circle_global_radius_quantile: float = 0.99,
     circle_radius_anomaly_ratio: float = 1.5,
@@ -169,8 +176,10 @@ def run_needle_inference(
     if not inputs:
         raise FileNotFoundError(f"No image files found in {input_path}")
 
-    if circle_radius_mode not in {"image-max", "global-quantile"}:
-        raise ValueError("circle_radius_mode must be 'image-max' or 'global-quantile'.")
+    if circle_radius_mode not in {"component", "image-max", "global-quantile"}:
+        raise ValueError("circle_radius_mode must be 'component', 'image-max' or 'global-quantile'.")
+    if circle_radius_mode == "component" and circle_uniform_radius:
+        raise ValueError("circle_uniform_radius requires circle_radius_mode='image-max'.")
     component_quantile = validate_quantile(
         circle_component_coverage_quantile,
         name="circle_component_coverage_quantile",
@@ -315,6 +324,10 @@ def run_needle_inference(
             "circle_component_coverage_fraction": None,
             "circle_missed_mask_pixels": None,
             "circle_missed_mask_fraction": None,
+            "circle_outside_center_count": None,
+            "circle_overlap_risk_count": None,
+            "circle_overlap_risk_fraction": None,
+            "circle_roi_purpose": "detection_coverage_only",
             "warning": "; ".join(
                 value for value in [warning, scale_resolution.warning] if value
             ),
@@ -784,6 +797,10 @@ def finalize_circle_records(
         missed = mask & ~circle_mask
         coverage = component_coverage_fraction(final_rois, final_radius)
 
+        rows = circle_rois_to_rows(
+            final_rois, image_path=record.image_path, stem=record.stem, image_shape=mask.shape
+        )
+        overlap_count = sum(bool(row["circle_overlaps_nearest"]) for row in rows)
         record.metrics.update(
             {
                 "circle_rois": len(final_rois),
@@ -797,10 +814,12 @@ def finalize_circle_records(
                 "circle_component_coverage_fraction": coverage,
                 "circle_missed_mask_pixels": int(missed.sum()),
                 "circle_missed_mask_fraction": float(missed.sum() / max(int(mask.sum()), 1)),
+                "circle_outside_center_count": sum(not row["center_in_image"] for row in rows),
+                "circle_overlap_risk_count": overlap_count,
+                "circle_overlap_risk_fraction": overlap_count / len(rows) if rows else 0.0,
             }
         )
 
-        rows = circle_rois_to_rows(final_rois, image_path=record.image_path, stem=record.stem)
         write_circle_rois_csv(output_dir / f"{record.stem}_circle_rois.csv", rows)
         save_circle_outputs(output_dir, record.stem, base, mask, final_rois, circle_mask)
         record.rois = final_rois
@@ -874,9 +893,12 @@ def choose_global_circle_radius(
 
 
 def component_coverage_fraction(rois: list[CircleROI], radius: float | None) -> float | None:
-    if radius is None or not rois:
+    if not rois:
         return None
-    covered = sum(1 for roi in rois if roi.required_radius_px <= radius)
+    covered = sum(
+        1 for roi in rois
+        if roi.required_radius_px <= (roi.radius_px if radius is None else radius) + 1e-6
+    )
     return float(covered / len(rois))
 
 
@@ -902,6 +924,9 @@ def write_circle_radius_summary(path: Path, records: list[CircleImageRecord]) ->
             "component_coverage_fraction": record.metrics.get("circle_component_coverage_fraction"),
             "missed_mask_pixels": record.metrics.get("circle_missed_mask_pixels"),
             "missed_mask_fraction": record.metrics.get("circle_missed_mask_fraction"),
+            "outside_center_count": record.metrics.get("circle_outside_center_count"),
+            "overlap_risk_count": record.metrics.get("circle_overlap_risk_count"),
+            "overlap_risk_fraction": record.metrics.get("circle_overlap_risk_fraction"),
             "anomaly": record.anomaly,
             "anomaly_reason": record.anomaly_reason,
         }
@@ -959,9 +984,22 @@ def circle_rois_to_rows(
     *,
     image_path: Path,
     stem: str,
+    image_shape: tuple[int, int],
 ) -> list[dict[str, Any]]:
+    height, width = image_shape
+    centers = np.asarray([(roi.center_x, roi.center_y) for roi in rois], dtype=np.float64)
+    if len(rois) > 1:
+        distances, neighbors = cKDTree(centers).query(centers, k=2)
+    else:
+        distances = neighbors = None
     rows: list[dict[str, Any]] = []
-    for roi in rois:
+    for index, roi in enumerate(rois):
+        nearest_distance = float(distances[index, 1]) if distances is not None else None
+        neighbor = rois[int(neighbors[index, 1])] if neighbors is not None else None
+        overlap = (
+            max(0.0, roi.radius_px + neighbor.radius_px - nearest_distance)
+            if neighbor is not None else None
+        )
         rows.append(
             {
                 "image": str(image_path),
@@ -985,6 +1023,12 @@ def circle_rois_to_rows(
                 "lattice_node_i": roi.lattice_node_i,
                 "lattice_node_j": roi.lattice_node_j,
                 "lattice_snap_distance_px": roi.lattice_snap_distance_px,
+                "roi_purpose": "detection_coverage_only",
+                "valid_for_intensity_measurement": False,
+                "center_in_image": 0 <= roi.center_x < width and 0 <= roi.center_y < height,
+                "nearest_center_distance_px": nearest_distance,
+                "nearest_circle_overlap_px": overlap,
+                "circle_overlaps_nearest": overlap > 0 if overlap is not None else False,
             }
         )
     return rows

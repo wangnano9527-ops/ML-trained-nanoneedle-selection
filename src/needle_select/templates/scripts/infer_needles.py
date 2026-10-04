@@ -48,7 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--circle-min-area", default=4, type=int)
     parser.add_argument("--circle-center-mode", choices=("component", "lattice"), default="lattice")
     parser.add_argument("--circle-uniform-radius", action="store_true")
-    parser.add_argument("--circle-radius-mode", choices=("image-max", "global-quantile"), default="global-quantile")
+    parser.add_argument("--circle-radius-mode", choices=("component", "image-max", "global-quantile"), default="component")
     parser.add_argument("--circle-component-coverage-quantile", default=0.99, type=float)
     parser.add_argument("--circle-global-radius-quantile", default=0.99, type=float)
     parser.add_argument("--circle-radius-anomaly-ratio", default=1.5, type=float)

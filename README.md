@@ -113,7 +113,7 @@ Unified V2 在 40x 模型空间工作：
 - `*_mask_raw.png`：过滤前的原始预测 mask。
 - `*_prob.png`：模型概率图。
 - `*_overlay.png`：预测结果叠加图。
-- `*_circle_rois.csv`：单张图像的圆形 ROI 参数。
+- `*_circle_rois.csv`：单张图像的检测圆参数及越界/邻针重叠质控。默认保留每针自身的覆盖半径；这些圆**不是荧光强度测量孔径**，定量需另设物理尺寸孔径及各通道背景校正。
 - `*_circle_mask.png`：圆形 ROI mask。
 - `*_circle_overlay.png`：圆形 ROI 和中心叠加图。
 

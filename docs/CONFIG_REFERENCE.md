@@ -51,10 +51,12 @@ Relative paths are resolved under `project_root`.
 - `clean_components`, `min_diameter_ratio`, `max_diameter_ratio`: expected-diameter component filtering.
 - `save_circle_rois`: write circular ROI CSV/mask/overlay outputs.
 - `circle_center_mode`: `lattice` corrects detected centers against the fitted grid; `component` keeps measured centers.
-- `circle_radius_mode`: `global-quantile` calibrates a shared dataset radius while excluding anomalous images; `image-max` stays image-local.
+- `circle_radius_mode`: `component` (default) retains each detection component's own coverage radius; `image-max` uses one image-local radius when `circle_uniform_radius = true`; legacy `global-quantile` calibrates a shared dataset radius while excluding anomalous images. Uniform modes are for explicit compatibility, not fluorescence quantification.
 - `circle_component_coverage_quantile`, `circle_global_radius_quantile`: component and dataset radius quantiles.
 - `lattice_min_points`, `lattice_max_snap_distance`: center-correction acceptance settings.
 - `recursive`: whether to search input directories recursively.
+
+Circle CSV `radius_px` and circle masks describe detection-component coverage, not an intensity measurement aperture. Use validated physical-size apertures and per-channel background correction for fluorescence measurements. The CSV flags centers outside image bounds and nearest-neighbor circle overlap; the batch metrics and radius summary aggregate these QC counts. The pinned `inference_profile_unified_v2.json` retains its legacy defaults for reproducibility.
 
 The exact model-space scales are 2.0 for 20x, 1.0 for 40x, and approximately 0.6667 for 60x. Manual `scale` remains an advanced compatibility override; normal operation should use or estimate magnification.
 
